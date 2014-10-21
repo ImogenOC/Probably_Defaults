@@ -5,63 +5,11 @@ I Hope Your Enjoy Them
 MTS
 ]]
 
-local mtsLib = { wisp = false, alert = true, sound = true, taunt = false }
+local mtsLib = {}
 local _media = "Interface\\AddOns\\Probably_MrTheSoulz\\media\\"
 local mts_Dummies = {31146,67127,46647,32546,31144,32667,32542,32666,32545,32541}
 local _cc = {49203,6770,1776,51514,9484,118,28272,28271,61305,61025,61721,61780,3355,19386,20066,90337,2637,82676,115078,76780,9484,1513,115268}
 local ignoreDebuffs = {'Mark of Arrogance','Displaced Energy'}
-
---[[   !!!Pack Commands!!!   ]]
-ProbablyEngine.command.register('mts', function(msg, box)
-local command, text = msg:match("^(%S*)%s*(.-)$")
-		
-	-- Dispaly Version
-	if command == 'ver' or command == 'version' then
-		mtsLib.ConfigAlertSound()
-		mtsAlert:message('MrTheSoulz Version: 0.0.17')
-	end
-	
-	-- Enabled/Disable Whispers
-	if command == 'wisp' or command == 'wsp' or command == 'w' then
-	mtsLib.wisp = not mtsLib.wisp
-		if mtsLib.wisp then
-			mtsAlert:message('*Whispers Enabled.*')
-		else
-			mtsAlert:message('*Whispers Disabled*.')
-		end
-	end
-	
-	-- Enable/Disable Alerts
-	if command == 'alerts' or command == 'notifications' or command == 'a' then
-	mtsLib.alert = not mtsLib.alert
-		if mtsLib.alert then
-			mtsAlert:message('*Alerts Enabled.*')
-		else
-			mtsAlert:message('*Alerts Disabled*.')
-		end
-	end
-	
-	-- Enabled/Disable Sounds
-	if command == 'sounds' or command == 'sound' or command == 's' then
-	mtsLib.sound = not mtsLib.sound
-		if mtsLib.sound then
-			mtsAlert:message('*Sounds Enabled.*')
-		else
-			mtsAlert:message('*Sounds Disabled*.')
-		end
-	end
-
-	-- Enabled/Disable Taunts
-	if command == 'taunts' or command == 'taunt' or command == 't' then
-	mtsLib.taunt = not mtsLib.taunt
-		if mtsLib.taunt then
-			mtsAlert:message('*Taunts Enabled.*')
-		else
-			mtsAlert:message('*Taunts Disabled*.')
-		end
-	end
-			
-end)
 
 --[[   !!!Dispell function!!!   ]]
 function mtsLib.Dispell(text)
@@ -96,7 +44,7 @@ end
 --[[   !!!Check if should taunt!!!   ]]
 function mtsLib.ShouldTaunt()
 	if UnitIsTappedByPlayer("target") 
-	and mtsLib.taunt
+	and mtsLib.config:get(key) == true
 	and mtsLib.dummy() then
 		return true
 	else
@@ -104,9 +52,49 @@ function mtsLib.ShouldTaunt()
 	end
 end
 
+function mtsLib.getSetting(txt1, txt2)
+	if mtsLib.getConfig(txt1) == txt2 then
+		return true
+	else
+		return false
+	end
+end
+
+function mtsLib.getConfig(key)
+	return mtsLib.config:get(key)
+end
+
+function mtsLib.ConfigUnitMana(key, unit)
+	if ProbablyEngine.condition["mana"](unit) <= mtsLib.config:get(key) then
+		return true
+	else
+		return false
+	end
+end
+
+function mtsLib.ConfigUnitHp(key, unit)
+	if ProbablyEngine.condition["health"](unit) <= mtsLib.config:get(key) then
+		return true
+	else
+		return false
+	end
+end
+
+function mtsLib.modifierActionForSpellIsAlt(name)
+	return IsAltKeyDown() and not GetCurrentKeyBoardFocus() and mtsLib.getConfig("altKeyAction") == name
+end
+
+function mtsLib.modifierActionForSpellIsShift(name)
+	return IsShiftKeyDown() and not GetCurrentKeyBoardFocus() and mtsLib.getConfig("shiftKeyAction") == name
+end
+
+function mtsLib.modifierActionForSpellIsControl(name)
+	return IsControlKeyDown() and not GetCurrentKeyBoardFocus() and mtsLib.getConfig("controlKeyAction") == name
+end
+
 --[[   !!!Check if can whisper!!!   ]]
 function mtsLib.ConfigWhisper(txt)
-	if mtsLib.GetWisp() then
+	if mtsLib.getConfig('getWhispers') then
 		return RunMacroText("/w "..txt)
 	end
 	return false
@@ -114,14 +102,14 @@ end
 
 --[[   !!!Check if can use sounds!!!   ]]
 function mtsLib.ConfigAlertSound()
-	if mtsLib.wisp then
+	if mtsLib.getConfig('getSounds') then
 		PlaySoundFile(_media .. "beep.mp3", "master")
 	end
 end
 
 --[[   !!!Check if can use Alerts!!!   ]]
 function mtsLib.ConfigAlert(txt)
-	if mtsLib.alert then
+	if mtsLib.getConfig('getAlerts') then
 		return mtsAlert:message(txt)
 	end
 end
@@ -200,7 +188,7 @@ function mtsLib.initConfig()
 		mtsLib.config:addTitle("---> General Settings: <---")
 		mtsLib.config:addText("Everything in here is shared cross all of the profiles.")
 		mtsLib.config:addCheckBox("getAlerts", "Show Notifications", "Shows notification on top when used certain spells", true)
-		mtsLib.config:addCheckBox("getAlertSounds", "Notifications Sounds", "Plays a sound when a notification is shown.", true)
+		mtsLib.config:addCheckBox("getSounds", "Notifications Sounds", "Plays a sound when a notification is shown.", true)
 		mtsLib.config:addCheckBox("getWhispers", "Allow Whispers", "Whispers people after using certain spells", false)
 
 	-- Paladin Protection
