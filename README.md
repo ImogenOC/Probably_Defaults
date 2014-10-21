@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="http://img11.imageshack.us/img11/8108/lymg.jpg"/>
+  <img src="http://s27.postimg.org/8s85mljbn/splash.png"/>
 </p>
 - - - -
 
